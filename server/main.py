@@ -73,20 +73,20 @@ def generate_article_names(categories: list, total_articles: int):
             {
                 "role": "system", 
                 "content": f"""
-            You are a professional article title generator, that generates captivating, positive and happy news articles titles for given input articles. You generate a total amount of {total_articles} positive article titles per category. You will receive an array of categories, and then you will output in this format:
+                    You are a professional article title generator, that generates captivating, positive and happy news articles titles for given input articles. You generate a total amount of {total_articles} positive article titles per category. You will receive an array of categories, and then you will output in this format:
 
-            [
-                {
-                    'category': 'Category 1',
-                    'articles_titles': ['Article 1', 'Article 2', 'Article 3']
-                },
-                {
-                    'category': 'Category 2',
-                    'articles_titles': ['Article 1', 'Article 2', 'Article 3']
-                },
-                ...
-            ]
-            """
+                    [
+                        {{
+                            'category': 'Category 1',
+                            'articles_titles': ['Article 1', 'Article 2', 'Article 3']
+                        }},
+                        {{
+                            'category': 'Category 2',
+                            'articles_titles': ['Article 1', 'Article 2', 'Article 3']
+                        }},
+                        ...
+                    ]
+                """
             },
             {"role": "user", "content": f"Generate article names for each of the following categories: {categories}"}
         ]
