@@ -3,7 +3,7 @@ from fastapi.openapi.models import APIKey
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
-import os
+import os 
 import json
 
 load_dotenv()
@@ -33,7 +33,10 @@ async def populate_db(body: PopulateDBBody):
     article_names_json = generate_article_names(all_categories, total_articles)
     all_articles = []
     for category in article_names_json:
-        all_category_articles = []
+        all_category_articles = {
+            "category": category["category"],
+            "articles": [],
+        }
         print(f"Generating articles for {category['category']}")
         for index, title in enumerate(category["articles_titles"]):
             print(f"Generating article for {title}")
@@ -59,7 +62,7 @@ async def populate_db(body: PopulateDBBody):
             article_json["category"] = category["category"]
 
             print(f"Generated article for `{title}`, total length: {len(article_json['article'])}")
-            all_category_articles.append(article_json)
+            all_category_articles["articles"].append(article_json)
         all_articles.append(all_category_articles)
 
     return {"message": "Database populated successfully"}
@@ -73,19 +76,17 @@ def generate_article_names(categories: list, total_articles: int):
             {
                 "role": "system", 
                 "content": f"""
-                    You are a professional article title generator, that generates captivating, positive and happy news articles titles for given input articles. You generate a total amount of {total_articles} positive article titles per category. You will receive an array of categories, and then you will output in this format:
+                You are a professional article title generator, that generates captivating, positive and happy news articles titles for given input articles. You generate a total amount of {total_articles} positive article titles per category. You will receive an array of categories, and then you will output in this format:
 
-                    [
-                        {{
-                            'category': 'Category 1',
-                            'articles_titles': ['Article 1', 'Article 2', 'Article 3']
-                        }},
-                        {{
-                            'category': 'Category 2',
-                            'articles_titles': ['Article 1', 'Article 2', 'Article 3']
-                        }},
-                        ...
-                    ]
+                [
+                    {{
+                        'category': 'Category 1',
+                        'articles_titles': ['Article 1', 'Article 2', 'Article 3']
+                    }},
+                    {{
+                        'category': 'Category 2',
+                        'articles_titles': ['Article 1', 'Article 2', 'Article 3']
+                ]
                 """
             },
             {"role": "user", "content": f"Generate article names for each of the following categories: {categories}"}
@@ -93,8 +94,11 @@ def generate_article_names(categories: list, total_articles: int):
     )
 
     categories_str = completion.choices[0].message.content or ""
-    print(categories_str)
     categories_json = json.loads(categories_str)
     print(f"Categories JSON: {categories_json}")
 
     return categories_json
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
