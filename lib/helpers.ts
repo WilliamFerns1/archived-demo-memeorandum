@@ -10,27 +10,73 @@ console.log(openaiModel)
 
 const client = new OpenAI({apiKey: openaiAPIKey});
 
+// Initialize Firebase Admin SDK only if it's not already initialized
+if (!admin.apps.length) {
+    const serviceAccount = require('@/serviceAccount.json'); // Replace with your service account key path
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      // Replace with your Firestore database URL
+      databaseURL: "https://memeorandum-demo.firebaseio.com"
+    });
+}
+const db = admin.firestore();
+
 export async function populateDatabaseWithArticles() {
+
   const allCategories = [
     "trending",
+    "trending - current events",
+    "trending - popular culture",
+    "trending - viral content",
+    "trending - internet trends",
     "food",
+    "food - recipes",
+    "food - restaurant reviews",
+    "food - cooking tips",
+    "food - food trends",
     "wellness",
-    "ravel",
+    "wellness - mental health",
+    "wellness - physical fitness",
+    "wellness - healthy eating",
+    "wellness - self-care practices",
+    "travel",
+    "travel - destinations",
+    "travel - travel tips",
+    "travel - adventure travel",
+    "travel - budget travel",
     "sports",
+    "sports - football",
+    "sports - basketball",
+    "sports - soccer",
+    "sports - tennis",
     "science",
+    "science - biology",
+    "science - physics",
+    "science - chemistry",
+    "science - astronomy",
     "celebrity",
+    "celebrity - celebrity gossip",
+    "celebrity - red carpet events",
+    "celebrity - celebrity interviews",
     "art",
+    "art - painting",
+    "art - sculpture",
+    "art - photography",
+    "art - performing arts",
     "nature",
-  ]
-  const titles = await generateAllArticleTitles(allCategories, 1)
+    "nature - wildlife",
+    "nature - environment",
+    "nature - natural phenomena",
+    "nature - conservation"
+  ];
+
+  const titles = await generateAllArticleTitles(allCategories, 3)
 
   console.log(titles)
   console.log(`Generated titles for ${titles.length} categories.`)
 
   const articles = await generateAllArticles(titles)
   console.log(`Generated articles for ${articles.length} categories.`)
-  
-  saveArticlesToFirebase(articles)
 
   return articles;
 }
@@ -39,18 +85,29 @@ async function generateAllArticleTitles(allCategories: string[], totalTitlesPerC
   console.log(`Total number of categories: ${allCategories.length}`)
   console.log(`Total number of titles per category: ${totalTitlesPerCategory}`)
 
+  const prompt = `You are a professional article/story title generator. For each category provided to you, you will generate a total of ${totalTitlesPerCategory} title/s that meets the following criteria: entertaining, fun, happy an positive. No blood or violence. Your response is in json format. The format of your return must be in the following format, nothing else (ignore the amount of titles, the amount of title/s you need to generate for each category is ${totalTitlesPerCategory}): {"titles": {"category": "trending", "titles": ["title1", "title2", "title3", "title4", "title5"]}, {"category": "food", "titles": ["title1", "title2", "title3", "title4", "title5"]}, ...}`
+
+  const userMessage = `Here is all the categories, generate titles for each category in the right format: ${allCategories.join(", ")}`
+  console.log(`Prompt: ${prompt}`)
+  console.log(`User Message: ${userMessage}`)
+
   const completion = await client.chat.completions.create({
     messages: [
-      {"role": "system", "content": `You are a professional article/story title generator. For each category provided to you, you will generate a total of ${totalTitlesPerCategory} title/s that meets the following criteria: entertaining, fun, happy an positive. No blood or violence. Your response is in json format. The format or your return must be in the following format, nothing else (ignore the amount of titles, the amount of title/s you need to generate for each category is ${totalTitlesPerCategory}): {"titles": {"category": "trending", "titles": ["title1", "title2", "title3", "title4", "title5"]}, {"category": "food", "titles": ["title1", "title2", "title3", "title4", "title5"]}, ...}`},
-      {"role": "user", "content": `Here is all the categoris: ${allCategories}`},
+      {"role": "system", "content": prompt},
+      {"role": "user", "content": userMessage},
     ],
+    max_tokens: 4095,
     model: openaiModel || "gpt-3.5-turbo",
     response_format: { type: "json_object"}
   });
 
   const response = completion.choices[0].message.content;
+  console.log(completion.choices)
+  console.log(response)
+  console.log(response)
   if (response) {
     const responseJSON = JSON.parse(response);
+    console.log(responseJSON)
     return responseJSON["titles"]
   }
   else {
@@ -105,6 +162,7 @@ async function generateAllArticles(titles: CategoryTitlesObj[]) {
         const newArticle : ArticleObj = responseJSON;
         categoryObject.articles.push(newArticle);
         console.log(responseJSON)
+        await saveArticleToFirebase(newArticle, db, "articles")
       }
       else {
         console.log({"message": "Error: No response from OpenAI"})
@@ -115,38 +173,11 @@ async function generateAllArticles(titles: CategoryTitlesObj[]) {
   return allArticles;
 }
 
-async function saveArticlesToFirebase(articles: any) {
+async function saveArticleToFirebase(article: any, db: any, collectionName: string) {
   try {
-    // Initialize Firebase Admin SDK
-    const serviceAccount = require('@/serviceAccount.json'); // Replace with your service account key path
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      // Replace with your Firestore database URL
-      databaseURL: "https://memeorandum-demo.firebaseio.com"
-    });
-
-    // Function to save JSON objects as documents in Firestore
-    async function saveJSONObjectsToFirestore(jsonArray: any[], collectionName: string) {
-      const db = admin.firestore();
-
-      try {
-        // Iterate through the JSON array
-        for (const jsonObj of jsonArray) {
-          // Add a new document to the collection with the key-value pairs from the JSON object
-          await db.collection(collectionName).add(jsonObj);
-        }
-        console.log("Documents added successfully!");
-      } catch (error) {
-        console.error("Error adding documents: ", error);
-      }
-    }
-
-    // Name of the Firestore collection where you want to save the documents
-    const collectionName = "articles";
-
-    // Call the function to save JSON objects to Firestore
-    saveJSONObjectsToFirestore(articles, collectionName);
-
+    // Add a new document to the collection with the key-value pairs from the JSON object
+    await db.collection(collectionName).add(article);
+    console.log(`Article with title ${article.title} saved to Firestore`);
     return {"message": "success"};
   }
   catch (e) {
