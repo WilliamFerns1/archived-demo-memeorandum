@@ -21,7 +21,7 @@ export default function Home() {
           HappyPositiveNews
         </h1>
         <div
-          className="bg-[orangered] p-2 rounded-md flex items-center justify-center lg:hidden"
+          className="p-2 flex items-center justify-center lg:hidden"
           onClick={toggleNavDropdown}
         >
           {
@@ -49,15 +49,12 @@ export default function Home() {
           <button className="btn-primary-small">Sign Up</button>
         </div>
       </header>
-      <section className="flex flex-col justify-center h-[80vh] items-center gap-4 leading-none">
-        <p className="text-center w-3/5">
-          Tired of all the negative news? Everywhere you go, people are
-          stressed out, and unhappy. It doesn't have to be that way.
-          HappyPositiveNews is a media platform where you can spend a small
-          amount of time each day, reading positive news and stories, around
-          various categories, to light up your day.
+      <section className="flex flex-col justify-center h-[80vh] items-center px-2 py-3 sm:px-0 sm:py-0">
+        <h1 className="text-3xl text-center bold text-yellow-400 lg:text-[3.5rem] sm:leading-none">Empower Your Day with Positivity</h1>
+        <p className="text-center sm:w-3/5 w-4/5 mt-2 text-[12px]">
+          {`${window.innerWidth > 800 ? "Seeking positivity in a negative world? " : ""}Discover HappyPositiveNews, where you can find uplifting stories in various categories to brighten your day.`}
         </p>
-        <button className="btn-primary">Start today</button>
+        <button className="btn-primary mt-4">Start today</button>
       </section>
     </main>
   );
