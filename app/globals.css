@@ -31,3 +31,40 @@ body {
     text-wrap: balance;
   }
 }
+
+.btn-primary-small {
+  font-weight: 600;
+  padding:  0.5rem 0.75rem;
+  background-color: orangered;
+  border-radius: 0.5rem;
+}
+
+.btn-primary {
+  font-weight: 600;
+  padding:  0.75rem 1rem;
+  background-color: orangered;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.btn-primary-large {
+  font-weight: 600;
+  padding:  1rem 1.25rem;
+  background-color: orangered;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.nav-link {
+  font-weight: 600;
+}
+
+
+/* Quick utils: */
+.bold {
+  font-weight: bold;
+}
+
+.semibold {
+  font-weight: 600;
+}
