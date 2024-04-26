@@ -68,3 +68,11 @@ body {
 .semibold {
   font-weight: 600;
 }
+
+.bg-[orangered] {
+  transition: background-color 0.3s ease-in-out;
+}
+
+.bg-[orangered] .react-icon {
+  transition: opacity 0.3s ease-in-out;
+}
